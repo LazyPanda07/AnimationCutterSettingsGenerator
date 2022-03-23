@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import *
+from SettingsChildWindow import *
 
 
 class MainWindow(QMainWindow):
@@ -6,6 +6,8 @@ class MainWindow(QMainWindow):
 		self.setWindowTitle("AnimationCutter Settings Generator")
 
 		self.resize(1280, 720)
+
+		self.setCentralWidget(SettingsChildWindow(self))
 
 	def __init__(self, parent=None):
 		super().__init__(parent)
