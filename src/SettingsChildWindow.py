@@ -134,6 +134,7 @@ class SettingsChildWindow(QWidget):
 		types = ["postfixes", "prefixes"]
 		reverse = self.children()
 		geometry = QRect()
+		self.generation_values = QListView(self)
 
 		reverse.reverse()
 
@@ -154,6 +155,16 @@ class SettingsChildWindow(QWidget):
 
 			if label.geometry().width() > SettingsChildWindow.__largest_width:
 				SettingsChildWindow.__largest_width = label.geometry().width()
+
+		self.setObjectName("generationValues")
+
+		self.generation_values.move(geometry.x() + SettingsChildWindow.__largest_width + SettingsChildWindow.__WIDTH_STEP, geometry.y() + geometry.height())
+
+		self.generation_values.setFixedHeight(450)
+
+		self.generation_values.verticalScrollBar()
+
+		self.generation_values.hide()
 
 	def __is_relative_path(self, index: int):
 		if index == 0:
@@ -180,15 +191,21 @@ class SettingsChildWindow(QWidget):
 
 			self.findChild(QLabel, "prefixes").hide()
 
+			self.generation_values.hide()
+
 		elif index == 1:
 			self.findChild(QLabel, "postfixes").hide()
 
 			self.findChild(QLabel, "prefixes").show()
 
+			self.generation_values.show()
+
 		elif index == 2:
 			self.findChild(QLabel, "prefixes").hide()
 
 			self.findChild(QLabel, "postfixes").show()
+
+			self.generation_values.show()
 
 	def __init(self):
 		for text, _ in SettingsChildWindow.__settings.items():
