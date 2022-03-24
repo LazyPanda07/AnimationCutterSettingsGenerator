@@ -1,7 +1,7 @@
 import json.encoder
-import threading
 
 from PyQt6.QtWidgets import *
+from PyQt6.QtCore import QRect
 
 
 class SettingsChildWindow(QWidget):
@@ -129,6 +129,32 @@ class SettingsChildWindow(QWidget):
 
 		self.out_path_edit_text.hide()
 
+	def __init_generation_type(self):
+		x = 5
+		types = ["postfixes", "prefixes"]
+		reverse = self.children()
+		geometry = QRect()
+
+		reverse.reverse()
+
+		for widget in reverse:
+			if isinstance(widget, QLabel):
+				geometry = widget.geometry()
+
+				break
+
+		for text in types:
+			label = QLabel(f"{text}:", self)
+
+			label.move(x, geometry.y() + geometry.height())
+
+			label.setObjectName(text)
+
+			label.hide()
+
+			if label.geometry().width() > SettingsChildWindow.__largest_width:
+				SettingsChildWindow.__largest_width = label.geometry().width()
+
 	def __is_relative_path(self, index: int):
 		if index == 0:
 			self.out_path_button.show()
@@ -148,9 +174,27 @@ class SettingsChildWindow(QWidget):
 
 			self.out_path_button.setObjectName("")
 
+	def __determine_generation_type(self, index: int):
+		if index == 0:
+			self.findChild(QLabel, "postfixes").hide()
+
+			self.findChild(QLabel, "prefixes").hide()
+
+		elif index == 1:
+			self.findChild(QLabel, "postfixes").hide()
+
+			self.findChild(QLabel, "prefixes").show()
+
+		elif index == 2:
+			self.findChild(QLabel, "prefixes").hide()
+
+			self.findChild(QLabel, "postfixes").show()
+
 	def __init(self):
 		for text, _ in SettingsChildWindow.__settings.items():
 			self.__add_label_widget(text)
+
+		self.__init_generation_type()
 
 		for text, data in SettingsChildWindow.__settings.items():
 			self.__init_widget(text, self.__create_widget(data))
@@ -158,6 +202,8 @@ class SettingsChildWindow(QWidget):
 		self.__init_out_path()
 
 		self.findChild(QComboBox, "isRelative").currentIndexChanged.connect(lambda index: self.__is_relative_path(index))
+
+		self.findChild(QComboBox, "generationType").currentIndexChanged.connect(lambda index: self.__determine_generation_type(index))
 
 	def generate_json(self):
 		with open("settings.json", "w", encoding="utf-8") as settings_file:
