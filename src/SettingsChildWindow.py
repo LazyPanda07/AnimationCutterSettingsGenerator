@@ -99,6 +99,9 @@ class SettingsChildWindow(QWidget):
 		widget = self.findChild(QWidget, widget_name)
 
 		if isinstance(widget, QTextEdit):
+			if widget.objectName() == "outPath":
+				return widget.toPlainText()
+
 			return int(widget.toPlainText())
 
 		elif isinstance(widget, QComboBox):
