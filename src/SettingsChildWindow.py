@@ -2,6 +2,7 @@ import json.encoder
 
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import QRect
+from PyQt6.QtGui import QStandardItem, QStandardItemModel, QColor
 
 
 class SettingsChildWindow(QWidget):
@@ -129,12 +130,21 @@ class SettingsChildWindow(QWidget):
 
 		self.out_path_edit_text.hide()
 
+	@staticmethod
+	def __create_item():
+		item = QStandardItem()
+
+		item.setBackground(QColor(0x808080))
+
+		return item
+
 	def __init_generation_type(self):
-		x = 5
+		x_offset = 5
 		types = ["postfixes", "prefixes"]
 		reverse = self.children()
 		geometry = QRect()
 		self.generation_values = QListView(self)
+		model = QStandardItemModel()
 
 		reverse.reverse()
 
@@ -147,7 +157,7 @@ class SettingsChildWindow(QWidget):
 		for text in types:
 			label = QLabel(f"{text}:", self)
 
-			label.move(x, geometry.y() + geometry.height())
+			label.move(x_offset, geometry.y() + geometry.height())
 
 			label.setObjectName(text)
 
@@ -160,11 +170,30 @@ class SettingsChildWindow(QWidget):
 
 		self.generation_values.move(geometry.x() + SettingsChildWindow.__largest_width + SettingsChildWindow.__WIDTH_STEP, geometry.y() + geometry.height())
 
-		self.generation_values.setFixedHeight(450)
+		self.generation_values.setFixedHeight(400)
 
 		self.generation_values.verticalScrollBar()
 
+		self.generation_values.setModel(model)
+
 		self.generation_values.hide()
+
+		self.add_button = QPushButton("Add", self)
+		self.delete_button = QPushButton("Delete", self)
+
+		geometry = self.generation_values.geometry()
+
+		self.add_button.move(geometry.x(), geometry.y() + geometry.height())
+
+		self.delete_button.move(self.add_button.geometry().x() + 75, geometry.y() + geometry.height())
+
+		self.add_button.clicked.connect(lambda state, x=id: model.appendRow(SettingsChildWindow.__create_item()))
+
+		self.delete_button.clicked.connect(lambda state, x=id: model.removeRow(model.rowCount() - 1))
+
+		self.add_button.hide()
+
+		self.delete_button.hide()
 
 	def __is_relative_path(self, index: int):
 		if index == 0:
@@ -193,6 +222,10 @@ class SettingsChildWindow(QWidget):
 
 			self.generation_values.hide()
 
+			self.add_button.hide()
+
+			self.delete_button.hide()
+
 		elif index == 1:
 			self.findChild(QLabel, "postfixes").hide()
 
@@ -200,12 +233,20 @@ class SettingsChildWindow(QWidget):
 
 			self.generation_values.show()
 
+			self.add_button.show()
+
+			self.delete_button.show()
+
 		elif index == 2:
 			self.findChild(QLabel, "prefixes").hide()
 
 			self.findChild(QLabel, "postfixes").show()
 
 			self.generation_values.show()
+
+			self.add_button.show()
+
+			self.delete_button.show()
 
 	def __init(self):
 		for text, _ in SettingsChildWindow.__settings.items():
