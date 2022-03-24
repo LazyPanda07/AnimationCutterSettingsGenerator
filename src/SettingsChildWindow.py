@@ -1,8 +1,7 @@
+import json.encoder
+import threading
+
 from PyQt6.QtWidgets import *
-
-
-def click():
-	print("Click")
 
 
 class SettingsChildWindow(QWidget):
@@ -13,7 +12,7 @@ class SettingsChildWindow(QWidget):
 	__settings = {
 		"step": [QTextEdit, "Step in frames between cuts"],
 		"animationLength": [QTextEdit, "Length of each animation in frames"],
-		"isRelative": [QComboBox, "true", "false"],
+		"isRelative": [QComboBox, "false", "true"],
 		"outPath": [QFileDialog, "Choose out path"],
 		"animationType": [QComboBox, "localSpace", "meshSpace", "none"],
 		"basePoseType": [QComboBox, "skeletonReferencePose", "animationScaled", "animationFrame", "none"],
@@ -21,11 +20,11 @@ class SettingsChildWindow(QWidget):
 		"generationType": [QComboBox, "standard", "prefixes", "postfixes"]
 	}
 
-	def __choose_out_path(self, file_dialog: QFileDialog, open_file_dialog: QPushButton):
-		if file_dialog.exec():
-			open_file_dialog.setToolTip(file_dialog.selectedFiles()[0])
+	def __choose_out_path(self, open_file_dialog: QPushButton):
+		if self.file_dialog.exec():
+			open_file_dialog.setToolTip(self.file_dialog.selectedFiles()[0])
 
-			self.parent().activateWindow()
+		self.parent().activateWindow()
 
 	def __add_label_widget(self, text: str):
 		x = 5
@@ -72,15 +71,15 @@ class SettingsChildWindow(QWidget):
 			return combo_box
 
 		else:
-			file_dialog = QFileDialog(self)
+			self.file_dialog = QFileDialog(self)
 
-			file_dialog.setFileMode(QFileDialog.FileMode.Directory)
+			self.file_dialog.setFileMode(QFileDialog.FileMode.Directory)
 
-			file_dialog.setWindowTitle(data[1])
+			self.file_dialog.setWindowTitle(data[1])
 
 			open_file_dialog = QPushButton(data[1], self)
 
-			open_file_dialog.clicked.connect(lambda state, x=id: self.__choose_out_path(file_dialog, open_file_dialog))
+			open_file_dialog.clicked.connect(lambda state, x=id: self.__choose_out_path(open_file_dialog))
 
 			return open_file_dialog
 
@@ -96,12 +95,75 @@ class SettingsChildWindow(QWidget):
 
 		widget.setObjectName(label_name)
 
+	def __get_value_from_widget(self, widget_name: str):
+		widget = self.findChild(QWidget, widget_name)
+
+		if isinstance(widget, QTextEdit):
+			return int(widget.toPlainText())
+
+		elif isinstance(widget, QComboBox):
+			text = widget.currentText()
+
+			if text == "true" or text == "false":
+				return bool(text)
+
+			return text
+
+		elif isinstance(widget, QPushButton):
+			return widget.toolTip()
+
+	def __init_out_path(self):
+		self.out_path_button = self.findChild(QPushButton, "outPath")
+		self.out_path_edit_text = QTextEdit(self)
+
+		geometry = self.out_path_button.geometry()
+
+		self.out_path_edit_text.setPlaceholderText("Relative path")
+
+		self.out_path_edit_text.move(geometry.x(), geometry.y())
+
+		self.out_path_edit_text.setFixedHeight(geometry.height())
+
+		self.out_path_edit_text.hide()
+
+	def __is_relative_path(self, index: int):
+		if index == 0:
+			self.out_path_button.show()
+
+			self.out_path_edit_text.hide()
+
+			self.out_path_button.setObjectName(self.out_path_edit_text.objectName())
+
+			self.out_path_edit_text.setObjectName("")
+
+		elif index == 1:
+			self.out_path_button.hide()
+
+			self.out_path_edit_text.show()
+
+			self.out_path_edit_text.setObjectName(self.out_path_button.objectName())
+
+			self.out_path_button.setObjectName("")
+
 	def __init(self):
 		for text, _ in SettingsChildWindow.__settings.items():
 			self.__add_label_widget(text)
 
 		for text, data in SettingsChildWindow.__settings.items():
 			self.__init_widget(text, self.__create_widget(data))
+
+		self.__init_out_path()
+
+		self.findChild(QComboBox, "isRelative").currentIndexChanged.connect(lambda index: self.__is_relative_path(index))
+
+	def generate_json(self):
+		with open("settings.json", "w", encoding="utf-8") as settings_file:
+			json_data = dict()
+
+			for widget_name, _ in SettingsChildWindow.__settings.items():
+				json_data[widget_name] = self.__get_value_from_widget(widget_name)
+
+			json.dump(json_data, settings_file, ensure_ascii=False, indent=4)
 
 	def __init__(self, parent: QWidget):
 		super().__init__(parent)
@@ -116,4 +178,4 @@ class SettingsChildWindow(QWidget):
 
 		generate_button.move(bottom_left_corner)
 
-		generate_button.clicked.connect(click)
+		generate_button.clicked.connect(lambda state, x=id: self.generate_json())
