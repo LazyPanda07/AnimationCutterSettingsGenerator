@@ -5,7 +5,7 @@ class MainWindow(QMainWindow):
 	def __init(self):
 		self.setWindowTitle("AnimationCutter Settings Generator")
 
-		self.resize(1280, 720)
+		self.setFixedSize(1280, 720)
 
 		self.setCentralWidget(SettingsChildWindow(self))
 

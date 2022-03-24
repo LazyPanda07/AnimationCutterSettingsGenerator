@@ -1,7 +1,7 @@
 import json.encoder
 
 from PyQt6.QtWidgets import *
-from PyQt6.QtCore import QRect
+from PyQt6.QtCore import QRect, Qt
 from PyQt6.QtGui import QStandardItem, QStandardItemModel, QColor
 
 
@@ -248,6 +248,17 @@ class SettingsChildWindow(QWidget):
 
 			self.delete_button.show()
 
+	def __get_values(self) -> list[str]:
+		result = list()
+		model = self.generation_values.model()
+
+		for row in range(0, model.rowCount()):
+			item = model.data(model.index(row, 0))
+
+			result.append(str(item))
+
+		return result
+
 	def __init(self):
 		for text, _ in SettingsChildWindow.__settings.items():
 			self.__add_label_widget(text)
@@ -270,6 +281,12 @@ class SettingsChildWindow(QWidget):
 			for widget_name, _ in SettingsChildWindow.__settings.items():
 				json_data[widget_name] = self.__get_value_from_widget(widget_name)
 
+			if self.findChild(QLabel, "prefixes").isVisible():
+				json_data["prefixes"] = self.__get_values()
+
+			elif self.findChild(QLabel, "postfixes").isVisible():
+				json_data["postfixes"] = self.__get_values()
+
 			json.dump(json_data, settings_file, ensure_ascii=False, indent=4)
 
 	def __init__(self, parent: QWidget):
@@ -281,7 +298,7 @@ class SettingsChildWindow(QWidget):
 
 		generate_button = QPushButton("Generate", self)
 
-		bottom_left_corner.setY(bottom_left_corner.y() - generate_button.size().height())
+		bottom_left_corner.setY(bottom_left_corner.y() - 23)
 
 		generate_button.move(bottom_left_corner)
 
