@@ -1,7 +1,7 @@
 import json.encoder
 
 from PyQt6.QtWidgets import *
-from PyQt6.QtCore import QRect, Qt
+from PyQt6.QtCore import QRect
 from PyQt6.QtGui import QStandardItem, QStandardItemModel, QColor
 
 
@@ -263,7 +263,7 @@ class SettingsChildWindow(QWidget):
 
 		return result
 
-	def __validate(self) -> bool:
+	def __validate(self):
 		error_message = str()
 		threshold_text = self.findChild(QTextEdit, "threshold").toPlainText()
 		is_relative = json.loads(self.findChild(QComboBox, "isRelative").currentText().lower())
