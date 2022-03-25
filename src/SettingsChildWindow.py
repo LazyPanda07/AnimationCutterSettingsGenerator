@@ -16,8 +16,8 @@ class SettingsChildWindow(QWidget):
 		"threshold": [QTextEdit, "Cut that count of frames, 0 if you don't want to use this parameter"],
 		"isRelative": [QComboBox, "false", "true"],
 		"outPath": [QFileDialog, "Choose out path"],
-		"animationType": [QComboBox, "localSpace", "meshSpace", "none"],
-		"basePoseType": [QComboBox, "skeletonReferencePose", "animationScaled", "animationFrame", "none"],
+		"animationType": [QComboBox, "meshSpace", "localSpace", "none"],
+		"basePoseType": [QComboBox, "animationFrame", "skeletonReferencePose", "animationScaled", "none"],
 		"interpolationType": [QComboBox, "linear", "step"],
 		"generationType": [QComboBox, "standard", "prefixes", "postfixes"]
 	}
@@ -114,6 +114,9 @@ class SettingsChildWindow(QWidget):
 
 			if text == "true" or text == "false":
 				return json.loads(text.lower())
+
+			elif text == "none":
+				return json.loads("null")
 
 			return text
 
@@ -252,6 +255,15 @@ class SettingsChildWindow(QWidget):
 
 			self.delete_button.show()
 
+	def __reset_base_pose_type(self, index: int):
+		combo_box = self.findChild(QComboBox, "basePoseType")
+
+		if index == 2:
+			combo_box.setCurrentIndex(3)
+
+		elif combo_box.currentIndex() == 3:
+			combo_box.setCurrentIndex(0)
+
 	def __get_values(self) -> list[str]:
 		result = list()
 		model = self.generation_values.model()
@@ -267,6 +279,8 @@ class SettingsChildWindow(QWidget):
 		error_message = str()
 		threshold_text = self.findChild(QTextEdit, "threshold").toPlainText()
 		is_relative = json.loads(self.findChild(QComboBox, "isRelative").currentText().lower())
+		animation_type = self.findChild(QComboBox, "animationType").currentText()
+		base_pose_type = self.findChild(QComboBox, "basePoseType").currentText()
 
 		if not self.findChild(QTextEdit, "step").toPlainText().isdigit():
 			error_message += "step field only works with integers\n"
@@ -279,6 +293,9 @@ class SettingsChildWindow(QWidget):
 
 		if not is_relative and self.findChild(QPushButton, "outPath") is not None and len(self.findChild(QPushButton, "outPath").toolTip()) == 0:
 			error_message += "Absolute path can not be empty"
+
+		if animation_type == "none" and base_pose_type != "none":
+			error_message += "animationType is none, basePoseType also must be none"
 
 		if len(error_message) > 0:
 			raise TypeError(error_message)
@@ -297,6 +314,8 @@ class SettingsChildWindow(QWidget):
 		self.findChild(QComboBox, "isRelative").currentIndexChanged.connect(lambda index: self.__is_relative_path(index))
 
 		self.findChild(QComboBox, "generationType").currentIndexChanged.connect(lambda index: self.__determine_generation_type(index))
+
+		self.findChild(QComboBox, "animationType").currentIndexChanged.connect(lambda index: self.__reset_base_pose_type(index))
 
 	def generate_json(self):
 		try:
