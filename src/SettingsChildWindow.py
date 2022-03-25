@@ -306,7 +306,12 @@ class SettingsChildWindow(QWidget):
 
 			return
 
-		with open("settings.json", "w", encoding="utf-8") as settings_file:
+		file_name = self.settings_file_name_text_edit.toPlainText()
+
+		if len(file_name) > 0:
+			self.settings_file_name = file_name
+
+		with open(f"{self.settings_file_name}.json", "w", encoding="utf-8") as settings_file:
 			json_data = dict()
 
 			for widget_name, _ in SettingsChildWindow.__settings.items():
@@ -320,8 +325,12 @@ class SettingsChildWindow(QWidget):
 
 			json.dump(json_data, settings_file, ensure_ascii=False, indent=4)
 
+		QMessageBox().about(self.parent(), "Success", f"File '{self.settings_file_name}.json' created")
+
 	def __init__(self, parent: QWidget):
 		super().__init__(parent)
+
+		self.settings_file_name = "settings"
 
 		self.__init()
 
@@ -329,8 +338,16 @@ class SettingsChildWindow(QWidget):
 
 		generate_button = QPushButton("Generate", self)
 
-		bottom_left_corner.setY(bottom_left_corner.y() - 23)
+		bottom_left_corner.setY(bottom_left_corner.y() - 27)
 
 		generate_button.move(bottom_left_corner)
 
+		generate_button.setFixedHeight(30)
+
 		generate_button.clicked.connect(lambda state, x=id: self.generate_json())
+
+		self.settings_file_name_text_edit = QTextEdit(self.settings_file_name, self)
+
+		self.settings_file_name_text_edit.move(generate_button.x() + 75, generate_button.y() + 1)
+
+		self.settings_file_name_text_edit.setFixedHeight(28)
