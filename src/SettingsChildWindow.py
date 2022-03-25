@@ -13,7 +13,7 @@ class SettingsChildWindow(QWidget):
 	__settings = {
 		"step": [QTextEdit, "Step in frames between cuts"],
 		"animationLength": [QTextEdit, "Length of each animation in frames"],
-		"threshold": [QTextEdit, "Cut that count of frames, 0 if you don't want to use this parameter"],
+		"threshold": [QTextEdit, "Cut that count of frames, 0 or leave empty if you don't want to use this parameter"],
 		"isRelative": [QComboBox, "false", "true"],
 		"outPath": [QFileDialog, "Choose out path"],
 		"animationType": [QComboBox, "meshSpace", "localSpace", "none"],
