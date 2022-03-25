@@ -103,6 +103,9 @@ class SettingsChildWindow(QWidget):
 		if isinstance(widget, QTextEdit):
 			if widget.objectName() == "outPath":
 				return widget.toPlainText()
+			elif widget.objectName() == "threshold":
+				if len(widget.toPlainText()) == 0:
+					return 0
 
 			return int(widget.toPlainText())
 
@@ -110,7 +113,7 @@ class SettingsChildWindow(QWidget):
 			text = widget.currentText()
 
 			if text == "true" or text == "false":
-				return bool(text)
+				return json.loads(text.lower())
 
 			return text
 
@@ -260,6 +263,26 @@ class SettingsChildWindow(QWidget):
 
 		return result
 
+	def __validate(self) -> bool:
+		error_message = str()
+		threshold_text = self.findChild(QTextEdit, "threshold").toPlainText()
+		is_relative = json.loads(self.findChild(QComboBox, "isRelative").currentText().lower())
+
+		if not self.findChild(QTextEdit, "step").toPlainText().isdigit():
+			error_message += "step field only works with integers\n"
+
+		if not self.findChild(QTextEdit, "animationLength").toPlainText().isdigit():
+			error_message += "animationLength field only works with integers\n"
+
+		if not threshold_text.isdigit() and len(threshold_text) > 0:
+			error_message += "threshold field only works with integers\n"
+
+		if not is_relative and self.findChild(QPushButton, "outPath") is not None and len(self.findChild(QPushButton, "outPath").toolTip()) == 0:
+			error_message += "Absolute path can not be empty"
+
+		if len(error_message) > 0:
+			raise TypeError(error_message)
+
 	def __init(self):
 		for text, _ in SettingsChildWindow.__settings.items():
 			self.__add_label_widget(text)
@@ -276,6 +299,13 @@ class SettingsChildWindow(QWidget):
 		self.findChild(QComboBox, "generationType").currentIndexChanged.connect(lambda index: self.__determine_generation_type(index))
 
 	def generate_json(self):
+		try:
+			self.__validate()
+		except TypeError as e:
+			QMessageBox().about(self.parent(), "Error", str(e))
+
+			return
+
 		with open("settings.json", "w", encoding="utf-8") as settings_file:
 			json_data = dict()
 
