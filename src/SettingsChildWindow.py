@@ -177,7 +177,7 @@ class SettingsChildWindow(QWidget):
 
 		self.generation_values.move(geometry.x() + SettingsChildWindow.__largest_width + SettingsChildWindow.__WIDTH_STEP, geometry.y() + geometry.height())
 
-		self.generation_values.setFixedHeight(400)
+		self.generation_values.setFixedHeight(390)
 
 		self.generation_values.verticalScrollBar()
 
